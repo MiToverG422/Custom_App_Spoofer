@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Base version, for example v0.1.0"
-        required: true
-        default: "v0.1.0"
+        description: "Base version. Leave empty to use module/module.prop."
+        required: false
+        default: ""
         type: string
       create_release:
         description: "Do you want to create a release?"

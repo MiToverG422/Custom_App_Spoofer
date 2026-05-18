@@ -97,7 +97,7 @@ if ([string]::IsNullOrWhiteSpace($Version)) {
     $Version = Get-ModulePropValue -Key "version"
 }
 if ([string]::IsNullOrWhiteSpace($Version)) {
-    $Version = "v0.3.11"
+    $Version = "v0.1.0"
 }
 if ($Ci -and $Release) {
     throw "Use only one of -Ci or -Release."
