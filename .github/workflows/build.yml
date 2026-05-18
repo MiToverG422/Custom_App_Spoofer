@@ -1,0 +1,101 @@
+name: Build Module
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Base version, for example v0.1.0"
+        required: true
+        default: "v0.1.0"
+        type: string
+      create_release:
+        description: "Do you want to create a release?"
+        required: true
+        default: false
+        type: boolean
+
+jobs:
+  build:
+    name: Build flashable zip
+    runs-on: windows-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android build tools
+        shell: pwsh
+        run: |
+          sdkmanager --install `
+            "platforms;android-36" `
+            "build-tools;37.0.0" `
+            "ndk;29.0.14206865"
+
+      - name: Install CMake and Ninja
+        shell: pwsh
+        run: |
+          choco install cmake ninja -y --no-progress
+          cmake --version
+          ninja --version
+
+      - name: Build module
+        id: build
+        shell: pwsh
+        run: |
+          $buildArgs = @{}
+          $eventName = "${{ github.event_name }}"
+          $inputVersion = "${{ inputs.version }}"
+          $createRelease = "${{ inputs.create_release }}"
+
+          if ($eventName -eq "workflow_dispatch" -and -not [string]::IsNullOrWhiteSpace($inputVersion)) {
+            $buildArgs.Version = $inputVersion
+          }
+
+          if ($eventName -eq "workflow_dispatch" -and $createRelease -eq "true") {
+            $buildArgs.Release = $true
+          }
+          else {
+            $buildArgs.Ci = $true
+          }
+
+          .\build.ps1 @buildArgs
+
+      - name: Upload CI artifact
+        if: ${{ github.event_name != 'workflow_dispatch' || !inputs.create_release }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: custom_app_spoofer-${{ steps.build.outputs.version }}
+          path: dist/*.zip
+          if-no-files-found: error
+
+      - name: Publish GitHub Release
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.create_release }}
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $version = "${{ steps.build.outputs.version }}"
+          $zip = "${{ steps.build.outputs.zip }}"
+          if (-not (Test-Path -LiteralPath $zip)) {
+            throw "Built zip not found: $zip"
+          }
+          if (gh release view $version 2>$null) {
+            throw "Release $version already exists. Build from a new commit."
+          }
+          gh release create $version $zip `
+            --title "Custom App Spoofer $version" `
+            --notes "Release build for $env:GITHUB_SHA." `
+            --latest

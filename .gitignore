@@ -1,0 +1,9 @@
+build/
+dist/
+unpacked/
+
+module/hooker.dex
+module/zygisk/*.so
+
+*.log
+*.tmp

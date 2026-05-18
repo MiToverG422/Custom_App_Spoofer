@@ -1,0 +1,138 @@
+# 自定义应用伪装配置文件。
+# 这个文件使用 native Zygisk 模块解析的简化 TOML 格式。
+# 默认模板：来自 OOSLocalizer 1.0 LSPosed 模块的中国区规则。
+#
+# 安装后直接编辑这个文件：
+#   /data/adb/modules/custom_app_spoofer/config/config.toml
+# 修改后强行停止目标应用；如果目标是系统应用，建议重启。
+# 运行日志路径：
+#   /data/adb/modules/custom_app_spoofer/logs/runtime.log
+# 日常使用建议保持 log_unmatched=false。和 packages=["*"] 同时开启可能拖慢应用启动。
+#
+# 如果要让同一个模板作用到所有应用，可以使用：
+# packages = ["*"]
+
+[global]
+# 默认使用哪个伪装模板。下面 [apps] 没单独指定 profile 时会用这个。
+default_profile = "default_OOSLocalizerCN"
+
+# 总日志开关。
+# true  = 输出 logcat，并允许写 runtime.log。
+# false = 关闭 native 运行日志，日常稳定后建议关掉以减少 I/O。
+log = true
+
+# 文件日志开关，日志路径：
+# /data/adb/modules/custom_app_spoofer/logs/runtime.log
+# true  = 写入 runtime.log，便于排查是否命中 app、LSPlant 是否加载。
+# false = 不写文件日志，更轻量。
+log_file = true
+
+# 未命中 app 的日志开关。
+# true  = 每个未在 packages 列表里的 app 也会写 skip unmatched。
+# false = 未命中 app 不写日志，日常强烈建议 false，特别是 packages=["*"] 调试后要关。
+log_unmatched = false
+
+# hook 命中日志开关。
+# true  = 每次 AppFeature/Provider 被命中都会写日志，适合短时间调试具体规则。
+# false = 不记录高频命中，日常建议 false，减少卡顿、I/O 和耗电。
+log_hook_hits = false
+
+# runtime.log 最大大小，超过后会清空重写，单位是字节。
+log_max_bytes = 262144
+
+# LSPlant/ART hook 开关。
+# true  = 启用 AppFeature 工具类和 ContentResolver.query 的 Java 方法 hook。
+# false = 只保留属性/Build/Locale 等轻量伪装，AppFeature 相关规则不会生效。
+art_hooks = true
+
+# native __system_property_get PLT hook 开关。
+# true  = 尝试拦截 native 层属性读取，覆盖更全面，但启动成本和兼容风险更高。
+# false = 只 hook Java SystemProperties.native_get，日常建议 false。
+native_property_hook = false
+
+# packages=["*"] 时是否允许重型 hook。
+# true  = 全局注入所有 app 时也启用 LSPlant/PLT 等重型 hook，可能明显卡顿/耗电。
+# false = 通配符模式下跳过重型 hook，只做轻量处理，日常建议 false。
+allow_wildcard_heavy_hooks = false
+
+[apps]
+enabled = true
+profile = "default_OOSLocalizerCN"
+packages = [
+  "com.android.contacts",
+  "com.android.incallui",
+  "com.android.launcher",
+  "com.coloros.assistantscreen",
+  "com.coloros.colordirectservice",
+  "com.coloros.phonemanager",
+  "com.coloros.sceneservice",
+  "com.coloros.translate",
+  "com.google.android.webview",
+  "com.heytap.cloud",
+  "com.heytap.market",
+  "com.heytap.mcs",
+  "com.heytap.mydevices",
+  "com.heytap.openid",
+  "com.heytap.speechassist",
+  "com.oplus.aimemory",
+  "com.oplus.aiunit",
+  "com.oplus.aiwriter",
+  "com.oplus.cosa",
+  "com.oplus.deepthinker",
+  "com.oplus.dmp",
+  "com.oplus.linker",
+  "com.oplus.metis",
+  "com.oplus.pantanal.ums",
+  "com.oplus.travelengine",
+  "com.oppo.quicksearchbox",
+  "com.oplus.pay",
+  "com.coloros.findmyphone",
+  "com.android.phone",
+  "com.coloros.weather2",
+  "com.oplus.owork",
+  "com.oplus.member",
+  "com.coloros.ocrscanner",
+  "com.oplus.vip",
+  "com.oplus.account",
+]
+
+[profiles.default_OOSLocalizerCN.locale]
+language = "zh"
+country = "CN"
+
+[profiles.default_OOSLocalizerCN.build]
+MODEL = "PMA120"
+PRODUCT = "PMA120"
+DEVICE = "PMA120"
+
+[profiles.default_OOSLocalizerCN.properties]
+persist.sys.oplus.region = "CN"
+ro.oplus.pipeline.region = "CN"
+ro.vendor.oplus.regionmark = "CN"
+persist.sys.oppo.region = "CN"
+user.region = "CN"
+ro.vendor.oplus.version = "cn"
+ro.product.locale = "zh-CN"
+persist.sys.locale = "zh-CN"
+ro.oplus.image.system_ext.area = "domestic"
+ro.oplus.image.my_stock.type = "domestic_OPPO"
+ro.product.name = "PMA120"
+ro.product.bootimage.device = "OP61BDL1"
+ro.product.model = "PMA120"
+ro.build.display.id = "PMA120_16.0.7.210(CN01)"
+ro.build.display.full_id = "PMA120domestic_11_16.0.7.210(CN01)_2026051318470000"
+ro.build.version.ota = "PMA120_11.A.45_0450_202605131847"
+ro.oplus.image.my_manifest.version = "PMA120_11.A.45_0450_202605131847.97.41d84fe6"
+ro.build.display.ota = "PMA120_11_A.45"
+ro.product.authentication = "25C44PC2G645"
+persist.bluetooth.airpods_support = "true"
+
+[profiles.default_OOSLocalizerCN.app_features]
+com.android.incallui.region_cn = "true"
+com.android.launcher.CN_VERSION = "true"
+com.android.settings.cn_version = "true"
+com.oplusos.deepthinker.cn.enable = "true"
+com.android.launcher.REGION_NAME = "String:CN"
+com.oplus.aipaint.area = "String:CN"
+com.oplus.aiwriter.main_host_address = "String:aitool-infer-cn.heytapmobi.com"
+com.oplus.smartanalysis.rule_server_host = "String:https://iwisdom.apps.coloros.com"

@@ -1,0 +1,7 @@
+id=custom_app_spoofer
+name=Custom App Spoofer
+version=
+versionCode=
+author=GitHub@MiToverG
+description=Per-app Android property, locale and feature spoofing. / 按应用自定义伪装系统属性、地区和功能开关。
+zygisk=true
