@@ -1,6 +1,6 @@
 # 自定义应用伪装配置文件。
 # 这个文件使用 native Zygisk 模块解析的简化 TOML 格式。
-# 默认模板：来自 OOSLocalizer 1.0 LSPosed 模块的中国区规则。
+# 默认模板：来自 OOSLocalizerCN 的中国区(特性)规则
 #
 # 安装后直接编辑这个文件：
 #   /data/adb/modules/custom_app_spoofer/config/config.toml
@@ -85,15 +85,33 @@ packages = [
   "com.oplus.pantanal.ums",
   "com.oplus.travelengine",
   "com.oppo.quicksearchbox",
-  "com.oplus.pay",
-  "com.coloros.findmyphone",
-  "com.android.phone",
-  "com.coloros.weather2",
-  "com.oplus.owork",
-  "com.oplus.member",
+  "com.coloros.shortcuts",
   "com.coloros.ocrscanner",
-  "com.oplus.vip",
+  "com.coloros.weather",
+  "com.coloros.weather.service",
+  "com.oplus.pay",
+  "com.nearme.instant.platform",
+  "com.oplus.member",
+  "com.heytap.tas",
+  "com.android.mms",
+  "com.finshell.wallet",
   "com.oplus.account",
+  "com.oplus.vip",
+  "com.android.server.telecom",
+  "com.oplus.callrecorder",
+  "com.coloros.findmyphone",
+  "com.coloros.smartsidebar",
+  "com.ted.number",
+  "com.oplus.phonenoareainquire",
+  "com.nearme.gamecenter",
+  "com.oplus.games",
+  "com.android.phone",
+  "com.oplus.blacklistapp",
+  "com.oplus.aiplaymate",
+  "com.oplus.aipaint",
+  "com.oplus.aicall",
+  "com.coloros.accessibilityassistant",
+  "com.oplus.audiomonitor",
 ]
 
 [profiles.default_OOSLocalizerCN.locale]
