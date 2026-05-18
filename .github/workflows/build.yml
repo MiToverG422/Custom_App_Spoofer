@@ -16,7 +16,7 @@ on:
 
 jobs:
   build:
-    name: Build flashable zip
+    name: Build zip
     runs-on: windows-latest
     permissions:
       contents: write
