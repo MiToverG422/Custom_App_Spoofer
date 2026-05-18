@@ -71,8 +71,8 @@ struct RuntimeConfig {
     std::vector<AppRule> apps;
     std::unordered_map<std::string, Profile> profiles;
     std::string default_profile = "default_OOSLocalizerCN";
-    bool log = true;
-    bool log_file = true;
+    bool log = false;
+    bool log_file = false;
     bool log_unmatched = false;
     bool art_hooks = true;
     bool native_property_hook = false;
@@ -83,8 +83,8 @@ struct RuntimeConfig {
 
 struct ActiveConfig {
     bool enabled = false;
-    bool log = true;
-    bool log_file = true;
+    bool log = false;
+    bool log_file = false;
     bool log_unmatched = false;
     bool art_hooks = true;
     bool native_property_hook = false;
@@ -191,11 +191,6 @@ void sendLineToCompanion(const char *line, size_t length) {
     if (fd < 0) return;
     writeAll(fd, line, length);
     close(fd);
-}
-
-__attribute__((constructor))
-void onNativeLibraryLoaded() {
-    __android_log_print(ANDROID_LOG_INFO, kLogTag, "native library constructor loaded");
 }
 
 void moduleLog(android_LogPriority priority, const char *fmt, ...) {
@@ -578,7 +573,7 @@ RuntimeConfig loadConfigFromModuleDir(int module_dir_fd) {
 }
 
 void openModuleLogFile(int module_dir_fd) {
-    if (!g_active.log_file || g_log_fd != -1) return;
+    if (!g_active.log || !g_active.log_file || g_log_fd != -1) return;
 
     int fd = -1;
     if (module_dir_fd >= 0) {
@@ -647,6 +642,17 @@ bool packageMatches(const AppRule &rule, const std::string &package_name, const 
 
 bool heavyHooksAllowed() {
     return !g_active.matched_wildcard || g_active.allow_wildcard_heavy_hooks;
+}
+
+bool hasPropertyOverrides(const Profile &profile) {
+    return !profile.properties.empty();
+}
+
+bool needsArtHooks(const ActiveConfig &active) {
+    return active.enabled &&
+           active.art_hooks &&
+           (!active.matched_wildcard || active.allow_wildcard_heavy_hooks) &&
+           !active.profile.app_features.empty();
 }
 
 ActiveConfig selectActiveConfig(const RuntimeConfig &config, const std::string &process_name) {
@@ -819,6 +825,7 @@ void registerPropertyPltHooks(zygisk::Api *api) {
 }
 
 void installSystemPropertiesHooks(zygisk::Api *api, JNIEnv *env) {
+    if (!hasPropertyOverrides(g_active.profile)) return;
     JNINativeMethod methods[] = {
             {"native_get", "(Ljava/lang/String;)Ljava/lang/String;", reinterpret_cast<void *>(hookedNativeGet1)},
             {"native_get", "(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;", reinterpret_cast<void *>(hookedNativeGet2)},
@@ -2002,15 +2009,15 @@ public:
         }
 
         openModuleLogFile(module_dir);
-        installSystemPropertiesHooks(api_, env_);
-        if (g_active.native_property_hook && heavyHooksAllowed()) {
-            registerPropertyPltHooks(api_);
-        } else if (g_active.native_property_hook && g_active.log) {
-            LOGW("skip native property PLT hook for wildcard scope; set allow_wildcard_heavy_hooks=true to force");
+        if (hasPropertyOverrides(g_active.profile)) {
+            installSystemPropertiesHooks(api_, env_);
         }
-        if (g_active.art_hooks && heavyHooksAllowed()) {
-            loadHookBridgeDex(env_, module_dir);
-            installArtHooks(env_);
+        if (g_active.native_property_hook && hasPropertyOverrides(g_active.profile)) {
+            if (heavyHooksAllowed()) {
+                registerPropertyPltHooks(api_);
+            } else if (g_active.log) {
+                LOGW("skip native property PLT hook for wildcard scope; set allow_wildcard_heavy_hooks=true to force");
+            }
         }
         if (module_dir >= 0) close(module_dir);
         if (g_active.log) {
@@ -2026,7 +2033,12 @@ public:
 
     void postAppSpecialize(const zygisk::AppSpecializeArgs *args) override {
         if (!g_active.enabled) return;
-        installArtHooks(env_);
+        if (needsArtHooks(g_active)) {
+            const int module_dir = api_->getModuleDir();
+            loadHookBridgeDex(env_, module_dir);
+            if (module_dir >= 0) close(module_dir);
+            installArtHooks(env_);
+        }
         applyBuildFields(env_);
         applyLocale(env_);
         applyJavaSystemProperties(env_);

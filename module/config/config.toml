@@ -19,13 +19,13 @@ default_profile = "default_OOSLocalizerCN"
 # 总日志开关。
 # true  = 输出 logcat，并允许写 runtime.log。
 # false = 关闭 native 运行日志，日常稳定后建议关掉以减少 I/O。
-log = true
+log = false
 
 # 文件日志开关，日志路径：
 # /data/adb/modules/custom_app_spoofer/logs/runtime.log
 # true  = 写入 runtime.log，便于排查是否命中 app、LSPlant 是否加载。
 # false = 不写文件日志，更轻量。
-log_file = true
+log_file = false
 
 # 未命中 app 的日志开关。
 # true  = 每个未在 packages 列表里的 app 也会写 skip unmatched。
